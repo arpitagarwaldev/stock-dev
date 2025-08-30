@@ -141,14 +141,10 @@ class StockService:
         """Validate if a stock symbol exists"""
         try:
             stock = yf.Ticker(symbol)
-            info = stock.info
+            hist = stock.history(period="1d")
             
-            # Check if we have essential price information
-            return (
-                'regularMarketPrice' in info or 
-                'currentPrice' in info or 
-                'previousClose' in info
-            )
+            # If we can get historical data, symbol is valid
+            return not hist.empty
         except:
             return False
     
