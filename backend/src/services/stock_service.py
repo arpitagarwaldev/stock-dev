@@ -33,18 +33,24 @@ class StockService:
                 return self.cache[symbol]['price']
             
             stock = yf.Ticker(symbol)
-            data = stock.history(period="1d", interval="1m")
             
-            if not data.empty:
-                current_price = float(data['Close'].iloc[-1])
-                
-                # Update cache
-                self.cache[symbol] = {
-                    'price': current_price,
-                    'timestamp': time.time()
-                }
-                
-                return current_price
+            # Try different periods to get price data
+            for period in ["1d", "5d"]:
+                try:
+                    data = stock.history(period=period)
+                    if not data.empty:
+                        current_price = float(data['Close'].iloc[-1])
+                        
+                        # Update cache
+                        self.cache[symbol] = {
+                            'price': current_price,
+                            'timestamp': time.time()
+                        }
+                        
+                        return current_price
+                except:
+                    continue
+            
             return None
         except Exception as e:
             print(f"Error fetching price for {symbol}: {e}")
@@ -141,10 +147,19 @@ class StockService:
         """Validate if a stock symbol exists"""
         try:
             stock = yf.Ticker(symbol)
-            hist = stock.history(period="1d")
             
-            # If we can get historical data, symbol is valid
-            return not hist.empty
+            # Try multiple periods to handle market hours/weekends
+            for period in ["1d", "5d", "1mo"]:
+                try:
+                    hist = stock.history(period=period)
+                    if not hist.empty:
+                        return True
+                except:
+                    continue
+            
+            # Also check if we can get basic info
+            info = stock.info
+            return bool(info and len(info) > 1)
         except:
             return False
     
