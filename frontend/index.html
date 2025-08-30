@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Trading Simulator</title>
+    <link rel="stylesheet" href="src/styles.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <h1 class="logo">📈 Stock Trader</h1>
+                <nav class="nav">
+                    <button id="portfolioBtn" class="nav-btn active">Portfolio</button>
+                    <button id="tradingBtn" class="nav-btn">Trading</button>
+                    <button id="watchlistBtn" class="nav-btn">Watchlist</button>
+                    <button id="historyBtn" class="nav-btn">History</button>
+                </nav>
+                <div class="user-info">
+                    <span id="userBalance">$0.00</span>
+                    <button id="logoutBtn" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Login/Register Modal -->
+        <div id="authModal" class="modal">
+            <div class="modal-content">
+                <h2>Welcome to Stock Trading Simulator</h2>
+                <p>Start with $100,000 virtual money to practice trading!</p>
+                
+                <div class="auth-tabs">
+                    <button id="loginTab" class="tab-btn active">Login</button>
+                    <button id="registerTab" class="tab-btn">Register</button>
+                </div>
+
+                <form id="authForm">
+                    <div class="form-group">
+                        <input type="text" id="username" placeholder="Username" required>
+                    </div>
+                    <div class="form-group" id="emailGroup" style="display: none;">
+                        <input type="email" id="email" placeholder="Email (optional)">
+                    </div>
+                    <button type="submit" id="authSubmit">Login</button>
+                </form>
+                
+                <div id="authMessage" class="message"></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="container">
+                <!-- Portfolio Section -->
+                <section id="portfolioSection" class="section active">
+                    <div class="section-header">
+                        <h2>Portfolio Overview</h2>
+                        <div class="portfolio-summary">
+                            <div class="summary-card">
+                                <h3>Total Value</h3>
+                                <span id="totalValue" class="value">$0.00</span>
+                            </div>
+                            <div class="summary-card">
+                                <h3>Cash Balance</h3>
+                                <span id="cashBalance" class="value">$0.00</span>
+                            </div>
+                            <div class="summary-card">
+                                <h3>Portfolio Value</h3>
+                                <span id="portfolioValue" class="value">$0.00</span>
+                            </div>
+                            <div class="summary-card">
+                                <h3>Total Gain/Loss</h3>
+                                <span id="totalGainLoss" class="value">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="holdings-table">
+                        <h3>Holdings</h3>
+                        <table id="holdingsTable">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Shares</th>
+                                    <th>Avg Price</th>
+                                    <th>Current Price</th>
+                                    <th>Market Value</th>
+                                    <th>Gain/Loss</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="holdingsBody">
+                                <tr>
+                                    <td colspan="7" class="no-data">No holdings yet. Start trading to build your portfolio!</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Trading Section -->
+                <section id="tradingSection" class="section">
+                    <div class="trading-container">
+                        <div class="search-section">
+                            <h2>Stock Search & Trading</h2>
+                            <div class="ai-recommendations">
+                                <h3>🤖 AI Recommendations</h3>
+                                <div id="aiRecommendations" class="recommendations-grid">
+                                    <div class="loading">Loading AI recommendations...</div>
+                                </div>
+                            </div>
+                            <div class="search-box">
+                                <input type="text" id="stockSearch" placeholder="Search stocks (e.g., AAPL, GOOGL)">
+                                <div id="searchResults" class="search-results"></div>
+                            </div>
+                        </div>
+
+                        <div class="stock-info" id="stockInfo" style="display: none;">
+                            <div class="stock-header">
+                                <h3 id="stockName">Stock Name</h3>
+                                <div class="stock-price">
+                                    <span id="stockPrice">$0.00</span>
+                                    <span id="stockChange" class="change">+$0.00 (0.00%)</span>
+                                </div>
+                            </div>
+                            
+                            <div class="ai-prediction" id="aiPrediction" style="display: none;">
+                                <h4>🧠 AI Prediction</h4>
+                                <div class="prediction-content">
+                                    <div class="prediction-summary">
+                                        <span id="predictionRecommendation" class="recommendation">HOLD</span>
+                                        <span id="predictionChange" class="change">+0.00%</span>
+                                        <span id="predictionConfidence" class="confidence">Medium</span>
+                                    </div>
+                                    <div class="prediction-details">
+                                        <span id="predictionText">AI analysis in progress...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="trading-actions">
+                                <div class="trade-form">
+                                    <h4>Buy/Sell</h4>
+                                    <div class="form-group">
+                                        <label>Shares:</label>
+                                        <input type="number" id="shareQuantity" min="1" value="1">
+                                    </div>
+                                    <div class="trade-buttons">
+                                        <button id="buyBtn" class="buy-btn">Buy</button>
+                                        <button id="sellBtn" class="sell-btn">Sell</button>
+                                        <button id="addWatchlistBtn" class="watchlist-btn">Add to Watchlist</button>
+                                        <button id="getPredictionBtn" class="ai-btn">🤖 Get AI Prediction</button>
+                                    </div>
+                                    <div class="trade-estimate">
+                                        <span id="tradeEstimate">Estimated cost: $0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Watchlist Section -->
+                <section id="watchlistSection" class="section">
+                    <h2>Watchlist</h2>
+                    <div id="watchlistContainer" class="watchlist-grid">
+                        <div class="no-data">No stocks in watchlist. Add some from the trading section!</div>
+                    </div>
+                </section>
+
+                <!-- History Section -->
+                <section id="historySection" class="section">
+                    <h2>Transaction History</h2>
+                    <div class="history-table">
+                        <table id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Symbol</th>
+                                    <th>Type</th>
+                                    <th>Shares</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyBody">
+                                <tr>
+                                    <td colspan="6" class="no-data">No transactions yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="src/app.js"></script>
+</body>
+</html>
