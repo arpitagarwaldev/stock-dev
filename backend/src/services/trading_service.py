@@ -1,6 +1,9 @@
 from typing import Dict, List, Optional
-from ..models.database import Database
-from .stock_service import StockService
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from models.database import Database
+from services.stock_service import StockService
 
 class TradingService:
     def __init__(self):
