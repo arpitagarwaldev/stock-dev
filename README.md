@@ -7,7 +7,7 @@ A comprehensive real-time stock trading simulator that allows users to practice 
 ![Flask](https://img.shields.io/badge/Flask-2.3-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-![Application Screenshot](screenshot/image.png)
+![Application Screenshot](https://via.placeholder.com/800x400/1a1a1a/ffffff?text=Stock+Trading+Simulator+Dashboard)
 
 ## 🎯 Key Features
 
